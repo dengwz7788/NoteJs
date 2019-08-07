@@ -71,7 +71,7 @@ let NoteJs = {
         toolsTitleDiv.style.padding = "20px 20px 0";
         toolsTitleDiv.style.paddingBottom = "32px";
         toolsTitleDiv.style.fontSize = "18px";
-        toolsTitleDiv.style.color = "#72767b";
+        toolsTitleDiv.style.color = "#303133";
         toolsTitleDiv.innerHTML = title;
         toolsDiv.appendChild(toolsTitleDiv);
     },
@@ -80,6 +80,8 @@ let NoteJs = {
         let toolsContentDiv = document.createElement("div");
         toolsContentDiv.style.padding = "20px";
         toolsContentDiv.style.height = "300px";
+        toolsContentDiv.style.fontStyle = "oblique"
+        toolsContentDiv.style.color = "#606266"
         toolsContentDiv.innerHTML = this.toolsContentTitle;
         toolsDiv.appendChild(toolsContentDiv);
     },
@@ -90,7 +92,7 @@ let NoteJs = {
         toolsBgTitleDiv.style.padding = "20px 20px 0";
         toolsBgTitleDiv.style.paddingBottom = "32px";
         toolsBgTitleDiv.style.fontSize = "18px";
-        toolsBgTitleDiv.style.color = "#72767b";
+        toolsBgTitleDiv.style.color = "#303133";
         toolsBgTitleDiv.innerHTML = title;
         toolsDiv.appendChild(toolsBgTitleDiv);
        
@@ -131,19 +133,29 @@ let NoteJs = {
     },
 
     toolsNoteTitleDiv : function(toolsDiv){
+      
+        let _this = this;
         let toolsNoteTitleDiv = document.createElement("div");
         toolsNoteTitleDiv.style.padding = "20px 20px 0";
         toolsNoteTitleDiv.style.paddingBottom = "32px";
         toolsNoteTitleDiv.style.fontSize = "18px";
-        toolsNoteTitleDiv.style.color = "#72767b";
+        toolsNoteTitleDiv.style.color = "#303133";
         toolsNoteTitleDiv.style.fontSize = "18px";
         toolsNoteTitleDiv.innerHTML = "笔记内容：";
         toolsDiv.appendChild(toolsNoteTitleDiv);
     
         let toolsNoteContentDiv = document.createElement("textarea");
         toolsNoteContentDiv.style.width = "100%";
+
         toolsNoteContentDiv.style.height = "400px";
-        toolsNoteContentDiv.style.border = "1px solid #e7e7e7";
+        toolsNoteContentDiv.style.padding = "20px";
+        toolsNoteContentDiv.name = "noteContent";
+        toolsNoteContentDiv.style.border = "1px solid #EBEEF5";
+
+        let checkText = _this.toolsContentTitle;
+        let noteContent =   _this.getlocalstorage(checkText);
+        toolsNoteContentDiv.value = noteContent.noteContent || ""
+
         toolsDiv.appendChild(toolsNoteContentDiv);
     
         let toolsNoteButtomDiv = document.createElement("div");
@@ -151,16 +163,20 @@ let NoteJs = {
         toolsNoteButtomDiv.style.paddingTop = "20px";
         toolsNoteButtomDiv.style.paddingRight = "20px";
 
-        let _this = this;
         let toolsNoteButton = this.setButton("提交", "#3a8ee6",function(){
-        let span = document.createElement("span");
-            span.innerText = _this.toolsContentTitle;
-            span.style.backgroundColor = _this.getCheckBgColor();
-            span.setAttribute("note", _this.setNoteID());
-            console.log(_this,span)
-          _this.rang.surroundContents(span);
-          _this.removeDiv();
-          _this.submitFuc()
+            let span = document.createElement("span");
+            let nodeId = _this.setNoteID();
+            let bgColor = _this.getCheckBgColor();
+            let checkText = _this.toolsContentTitle;
+            let NoteContentText = _this.getNoteContent();
+                span.innerText = checkText;
+                span.style.backgroundColor = bgColor;
+                span.setAttribute("note", nodeId);
+              _this.rang.surroundContents(span);
+              _this.removeDiv();
+
+              _this.setlocalstorage({nodeid: nodeId, bgColor:bgColor, content: checkText, noteContent: NoteContentText})
+              _this.submitFuc()
         });
         toolsNoteButtomDiv.appendChild(toolsNoteButton);
       
@@ -231,8 +247,51 @@ let NoteJs = {
 
     getCheckBgColor:function(){
        return this.checkBgColor;
+    },
+
+    getNoteContent: function(){
+      let noteContent = document.getElementsByName("noteContent")[0];
+      return noteContent.value || "";
+    },
+
+    setlocalstorage: function(newNode){
+        let note = localStorage.getItem("note") || [];
+        if(note.length){
+          note = JSON.parse(note);
+
+          // 判断笔记是修改，还是新增，搜索noteID是否存在
+          let IsUpdate = 0;
+          note.forEach((element,index) => {
+             if(element.content == newNode.content){
+                 note[index].noteContent = newNode.noteContent;
+                 IsUpdate = 1;
+             }
+          });
+          if(IsUpdate === 0 ){
+            note.push(newNode);
+          }
+        }else{
+          note.push(newNode);
+        }
+        localStorage.setItem('note', JSON.stringify(note));
+    },
+
+    getlocalstorage: function(content){
+      let note = localStorage.getItem("note") || [];
+      let HitData = "";
+      if(note.length){
+         note = JSON.parse(note);
+         note.forEach( element => {
+          if(element.content == content){
+            HitData = element;
+          }
+       });
+      }
+      return HitData;
     }
 }
 
 const me = Object.create(NoteJs);
-me.init({submitFuc: function(){}});
+me.init({submitFuc: function(){
+  
+}});
