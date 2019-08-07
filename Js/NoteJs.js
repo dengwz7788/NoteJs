@@ -1,26 +1,36 @@
 let NoteJs = {
     body : document.body,
+    toolsContentTitle : '',
     defaultsubmitFuc: function(){alert("提交")},
-    defaultBgColorArr : ["red","blue","yellow","green"],
-    checkBgColor: "#fff",
+    defaultBgColorArr : ["#409EFF","#67C23A","#E6A23C","#F56C6C","#909399"],
+    checkBgColor: "#409EFF",
+    rang: {},
     _show : false,
     init: function(option = {}){
+      let _this = this;
+      _this.submitFuc = option.submitFuc || this.defaultsubmitFuc
+      _this.BgColorArr = option.BgColorArr || this.defaultBgColorArr
 
-      this.text = option.text || "";
-      this.submitFuc = option.submitFuc || this.defaultsubmitFuc
-      this.BgColorArr = option.BgColorArr || this.defaultBgColorArr
-
-      if(this._show){
-        return false;
-      }else{
-        this.createLayout();
-        let toolsDiv = this.toolsDiv();
-        this.toolsTitleDiv(toolsDiv);
-        this.toolsContentDiv(toolsDiv, this.text);
-        this.toolsBgTitleDiv(toolsDiv);
-        this.toolsNoteTitleDiv(toolsDiv);
-        this._show = true;
-      }
+      window.addEventListener("mouseup",function(e){
+        let selObj = window.getSelection();
+        rang = selObj.getRangeAt(0);
+        toolsContentTitle  = rang.toString();
+        if(toolsContentTitle.length === 0){
+           return false;
+        }else if(_this._show){
+          return false;
+        }else{
+          _this.rang = rang;
+          _this.toolsContentTitle = toolsContentTitle;
+          _this.createLayout();
+          let toolsDiv = _this.toolsDiv();
+          _this.toolsTitleDiv(toolsDiv);
+          _this.toolsContentDiv(toolsDiv);
+          _this.toolsBgTitleDiv(toolsDiv);
+          _this.toolsNoteTitleDiv(toolsDiv);
+          _this._show = true;
+        }
+      });
     },
     /**创建遮罩层**/
     createLayout : function(){
@@ -29,7 +39,7 @@ let NoteJs = {
         layout.style.width = "100%";
         layout.style.height = this.body.offsetHeight;
         layout.style.backgroundColor = "#000";
-        layout.style.opacity = "0.3";
+        layout.style.opacity = ".5";
         layout.style.position = "absolute";
         layout.style.top = 0;
         layout.style.left = 0;
@@ -49,43 +59,40 @@ let NoteJs = {
         toolsDiv.style.right = 0;
         toolsDiv.style.zIndex = 101;
         toolsDiv.style.animation = "mytools .5s ease"
+        toolsDiv.style.boxShadow = "0 8px 10px -5px rgba(0,0,0,.2), 0 16px 24px 2px rgba(0,0,0,.14), 0 6px 30px 5px rgba(0,0,0,.12)";
         this.addCSS('@keyframes mytools {from {width:0;} to {width:300px;}}');
         this.body.appendChild(toolsDiv);
         return toolsDiv;
     },
 
-    toolsTitleDiv : function(toolsDiv,title = "选中的内容"){
+    toolsTitleDiv : function(toolsDiv,title = "选中的内容："){
         //设置工具内容数据
         let toolsTitleDiv = document.createElement("div");
-        toolsTitleDiv.style.paddingLeft = "20px";
-        toolsTitleDiv.style.paddingTop = "10px";
-        toolsTitleDiv.style.paddingBottom = "10px";
+        toolsTitleDiv.style.padding = "20px 20px 0";
+        toolsTitleDiv.style.paddingBottom = "32px";
         toolsTitleDiv.style.fontSize = "18px";
-        toolsTitleDiv.style.borderBottom = "1px solid #ccc";
+        toolsTitleDiv.style.color = "#72767b";
         toolsTitleDiv.innerHTML = title;
         toolsDiv.appendChild(toolsTitleDiv);
     },
 
-    toolsContentDiv : function(toolsDiv,title = "这是一首简单的小情歌"){
+    toolsContentDiv : function(toolsDiv){
         let toolsContentDiv = document.createElement("div");
-        toolsContentDiv.style.paddingLeft = "20px";
+        toolsContentDiv.style.padding = "20px";
         toolsContentDiv.style.height = "300px";
-        toolsContentDiv.style.paddingTop = "10px";
-        toolsContentDiv.innerHTML = title;
-        toolsContentDiv.style.borderBottom = "1px solid #e7e7e7";
+        toolsContentDiv.innerHTML = this.toolsContentTitle;
         toolsDiv.appendChild(toolsContentDiv);
     },
 
-    toolsBgTitleDiv : function(toolsDiv,title = "设置背景色"){
+    toolsBgTitleDiv : function(toolsDiv,title = "设置背景色："){
         let _this = this;
         let toolsBgTitleDiv = document.createElement("div");
-        toolsBgTitleDiv.style.paddingLeft = "20px";
-        toolsBgTitleDiv.style.paddingTop = "10px";
-        toolsBgTitleDiv.style.paddingBottom = "10px";
+        toolsBgTitleDiv.style.padding = "20px 20px 0";
+        toolsBgTitleDiv.style.paddingBottom = "32px";
         toolsBgTitleDiv.style.fontSize = "18px";
+        toolsBgTitleDiv.style.color = "#72767b";
         toolsBgTitleDiv.innerHTML = title;
         toolsDiv.appendChild(toolsBgTitleDiv);
-       
        
         let toolsBgTitleSpan = ""
         let BgColorArr = _this.BgColorArr;
@@ -100,23 +107,23 @@ let NoteJs = {
            toolsBgTitleSpan.style.width="20px";
            toolsBgTitleSpan.style.height= "20px";
            toolsBgTitleSpan.style.cursor = "pointer";
-           toolsBgTitleSpan.title = item;
 
           //绑定事件，获取你选择的颜色
           toolsBgTitleSpan.addEventListener("click",function(){
               _this.checkBgColor = this.style.backgroundColor;
-              this.style.boxShadow = "0px 0px 10px 0px #000";
+              this.style.boxShadow = "0px 0px 5px 0px "+item;
               let p = this.parentNode.children;
               for(let i =0,pl= p.length;i<pl;i++) {
-                if(p[i] !== this){
+                if(p[i] !== this && p[i].nodeName == "SPAN"){
                   p[i].style.boxShadow = "";
                 }
               }
           });
 
           toolsDiv.appendChild(toolsBgTitleSpan);
+
         });
-       
+
         let clearDiv = document.createElement("div");
         clearDiv.style.clear = "both";
         toolsDiv.appendChild(clearDiv);
@@ -125,13 +132,12 @@ let NoteJs = {
 
     toolsNoteTitleDiv : function(toolsDiv){
         let toolsNoteTitleDiv = document.createElement("div");
-        toolsNoteTitleDiv.style.paddingLeft = "20px";
-        toolsNoteTitleDiv.style.paddingTop = "10px";
-        toolsNoteTitleDiv.style.marginTop = "10px";
-        toolsNoteTitleDiv.style.paddingBottom = "10px";
+        toolsNoteTitleDiv.style.padding = "20px 20px 0";
+        toolsNoteTitleDiv.style.paddingBottom = "32px";
         toolsNoteTitleDiv.style.fontSize = "18px";
-        toolsNoteTitleDiv.innerHTML = "笔记内容";
-        toolsNoteTitleDiv.style.borderTop = "1px solid #e7e7e7";
+        toolsNoteTitleDiv.style.color = "#72767b";
+        toolsNoteTitleDiv.style.fontSize = "18px";
+        toolsNoteTitleDiv.innerHTML = "笔记内容：";
         toolsDiv.appendChild(toolsNoteTitleDiv);
     
         let toolsNoteContentDiv = document.createElement("textarea");
@@ -146,12 +152,19 @@ let NoteJs = {
         toolsNoteButtomDiv.style.paddingRight = "20px";
 
         let _this = this;
-        let toolsNoteButton = this.setButton("提交", "#eee",function(){
+        let toolsNoteButton = this.setButton("提交", "#3a8ee6",function(){
+        let span = document.createElement("span");
+            span.innerText = _this.toolsContentTitle;
+            span.style.backgroundColor = _this.getCheckBgColor();
+            span.setAttribute("note", _this.setNoteID());
+            console.log(_this,span)
+          _this.rang.surroundContents(span);
+          _this.removeDiv();
           _this.submitFuc()
         });
         toolsNoteButtomDiv.appendChild(toolsNoteButton);
       
-        let toolsNoteButton2 = this.setButton("取消", "#eee", function(){
+        let toolsNoteButton2 = this.setButton("取消", "3a8ee6", function(){
            _this.removeDiv()
         });
 
@@ -159,15 +172,16 @@ let NoteJs = {
         toolsDiv.appendChild(toolsNoteButtomDiv);
     },
 
-    setButton: function( value = "提交", bgColor = "#eee", callback = function(){}){
+    setButton: function( value = "提交", bgColor = "#3a8ee6", callback = function(){}){
       let toolsNoteButton = document.createElement("input");
       toolsNoteButton.type = "button";
       toolsNoteButton.value = value;
-      toolsNoteButton.style.border = "1px solid #eee";
+      toolsNoteButton.style.border = "1px solid #dcdfe6";
       toolsNoteButton.style.backgroundColor = bgColor;
       toolsNoteButton.style.padding = "5px 20px";
       toolsNoteButton.style.marginRight = "10px";
-      toolsNoteButton.style.color = "#000";
+      toolsNoteButton.style.color = "#fff";
+      toolsNoteButton.style.borderRadius = "4px";
       toolsNoteButton.style.cursor = "pointer";
 
       toolsNoteButton.addEventListener("click",callback);
@@ -200,6 +214,7 @@ let NoteJs = {
         }
         head.appendChild(style); //把创建的style元素插入到head中  
     },
+
     removeDiv:function(){
       let Nodejs_layout = document.getElementById("Notejs_layout");
       this.body.removeChild(Nodejs_layout);
@@ -209,36 +224,15 @@ let NoteJs = {
 
       this._show = false;
     },
+
     setNoteID:function(){
        return "js_note_" + (new Date()).getTime();
     },
+
     getCheckBgColor:function(){
        return this.checkBgColor;
-    },
-    siblings: function (elm) {
-      var a = [];
-      
-      return a;
     }
 }
 
 const me = Object.create(NoteJs);
-window.addEventListener("mouseup",function(e){
-  let selObj = window.getSelection();
-  let rang = selObj.getRangeAt(0);
-  let text  = rang.toString();
-  if(text.length){
-    me.init({
-       text: text,
-       submitFuc: function(){
-          let span = document.createElement("span");
-          span.innerText = text;
-          span.style.backgroundColor = me.getCheckBgColor();
-          span.setAttribute("note", me.setNoteID());
-          rang.surroundContents(span);
-          me.removeDiv();
-       }
-    });
-  }
-});
-
+me.init({submitFuc: function(){}});
