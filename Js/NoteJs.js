@@ -1,5 +1,6 @@
 let NoteJs = {
     body : document.body,
+    defaultId : "js_content",
     toolsContentTitle : '',
     defaultsubmitFuc: function(){alert("提交")},
     defaultBgColorArr : ["#409EFF","#67C23A","#E6A23C","#F56C6C","#909399"],
@@ -10,7 +11,7 @@ let NoteJs = {
       let _this = this;
       _this.submitFuc = option.submitFuc || this.defaultsubmitFuc
       _this.BgColorArr = option.BgColorArr || this.defaultBgColorArr
-
+      _this.id         = option.id || this.defaultId
       window.addEventListener("mouseup",function(e){
         let selObj = window.getSelection();
         rang = selObj.getRangeAt(0);
@@ -69,7 +70,6 @@ let NoteJs = {
         //设置工具内容数据
         let toolsTitleDiv = document.createElement("div");
         toolsTitleDiv.style.padding = "20px 20px 0";
-        toolsTitleDiv.style.paddingBottom = "32px";
         toolsTitleDiv.style.fontSize = "18px";
         toolsTitleDiv.style.color = "#303133";
         toolsTitleDiv.innerHTML = title;
@@ -81,6 +81,7 @@ let NoteJs = {
         toolsContentDiv.style.padding = "20px";
         toolsContentDiv.style.height = "300px";
         toolsContentDiv.style.fontStyle = "oblique"
+        toolsContentDiv.style.overflow = "hidden"
         toolsContentDiv.style.color = "#606266"
         toolsContentDiv.innerHTML = this.toolsContentTitle;
         toolsDiv.appendChild(toolsContentDiv);
@@ -90,7 +91,7 @@ let NoteJs = {
         let _this = this;
         let toolsBgTitleDiv = document.createElement("div");
         toolsBgTitleDiv.style.padding = "20px 20px 0";
-        toolsBgTitleDiv.style.paddingBottom = "32px";
+        toolsBgTitleDiv.style.paddingBottom = "20px";
         toolsBgTitleDiv.style.fontSize = "18px";
         toolsBgTitleDiv.style.color = "#303133";
         toolsBgTitleDiv.innerHTML = title;
@@ -137,7 +138,6 @@ let NoteJs = {
         let _this = this;
         let toolsNoteTitleDiv = document.createElement("div");
         toolsNoteTitleDiv.style.padding = "20px 20px 0";
-        toolsNoteTitleDiv.style.paddingBottom = "32px";
         toolsNoteTitleDiv.style.fontSize = "18px";
         toolsNoteTitleDiv.style.color = "#303133";
         toolsNoteTitleDiv.style.fontSize = "18px";
@@ -288,10 +288,27 @@ let NoteJs = {
        });
       }
       return HitData;
+    },
+
+    assign: function(){
+       let _this = this
+       let note  = localStorage.getItem("note")
+       let newNodeArr = JSON.parse(note)
+       let HTML = document.getElementById( _this.id ).innerHTML
+       newNodeArr.forEach( item => {
+          let span = document.createElement("span");
+          let content = item.content;
+          span.setAttribute("noteid", item.nodeid);
+          span.style.backgroundColor = item.bgColor;
+          span.innerHTML = content
+          HTML = HTML.replace(new RegExp(content,'g'),span.outerHTML);
+          document.getElementById( _this.id ).innerHTML = HTML;
+       });
     }
 }
 
 const me = Object.create(NoteJs);
-me.init({submitFuc: function(){
-  
-}});
+me.init({
+   id: "js_content"
+});
+me.assign();
