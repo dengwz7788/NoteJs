@@ -310,6 +310,17 @@ let NoteJs = {
        });
     },
 
+    getScrollTop: function () {
+      var scroll_top = 0;
+      if (document.documentElement && document.documentElement.scrollTop) {
+          scroll_top = document.documentElement.scrollTop;
+      }
+      else if (document.body) {
+          scroll_top = document.body.scrollTop;
+      }
+      return scroll_top;
+    },
+
     tooltips:function(){
 
       let _this = this;
@@ -337,17 +348,18 @@ let NoteJs = {
             let top = e.target.getBoundingClientRect().top;
             let height = e.target.getBoundingClientRect().height;
             let width = e.target.getBoundingClientRect().width;
+            let scrolltop = _this.getScrollTop();
 
-            console.log(height, width);
+            console.log("scrolltop", scrolltop)
 
             if( left > width){
                div.className = "bubble";
-               top = (top + height + 10) + "px";
+               top = scrolltop + (top + height + 10) + "px";
                left =  (left + (width/2) - 100) + "px";
             }else{
                div.className = "bubble_left";
                console.log(e.target.offsetHeight);
-               top = ( top - height) + "px";
+               top = scrolltop + ( top - height) + "px";
                left = (left + width + 10) + "px";
             }
 
