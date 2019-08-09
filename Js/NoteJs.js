@@ -35,10 +35,11 @@ let NoteJs = {
     },
     /**创建遮罩层**/
     createLayout : function(){
+        console.log(this.body.offsetHeight)
         let layout = document.createElement("div");
         layout.id =  "Notejs_layout";
         layout.style.width = "100%";
-        layout.style.height = this.body.offsetHeight;
+        layout.style.height = this.body.offsetHeight + "px";
         layout.style.backgroundColor = "#000";
         layout.style.opacity = ".5";
         layout.style.position = "absolute";
@@ -79,7 +80,7 @@ let NoteJs = {
     toolsContentDiv : function(toolsDiv){
         let toolsContentDiv = document.createElement("div");
         toolsContentDiv.style.padding = "20px";
-        toolsContentDiv.style.height = "300px";
+        toolsContentDiv.style.height = "240px";
         toolsContentDiv.style.fontStyle = "oblique"
         toolsContentDiv.style.overflow = "hidden"
         toolsContentDiv.style.color = "#606266"
@@ -145,7 +146,7 @@ let NoteJs = {
         toolsDiv.appendChild(toolsNoteTitleDiv);
     
         let toolsNoteContentDiv = document.createElement("textarea");
-        toolsNoteContentDiv.style.width = "100%";
+        toolsNoteContentDiv.style.width = "260px";
 
         toolsNoteContentDiv.style.height = "400px";
         toolsNoteContentDiv.style.padding = "20px";
@@ -172,10 +173,12 @@ let NoteJs = {
                 span.innerText = checkText;
                 span.style.backgroundColor = bgColor;
                 span.setAttribute("note", nodeId);
+                span.setAttribute("notecontent", NoteContentText);
               _this.rang.surroundContents(span);
               _this.removeDiv();
 
               _this.setlocalstorage({nodeid: nodeId, bgColor:bgColor, content: checkText, noteContent: NoteContentText})
+              _this.tooltips();
               _this.submitFuc()
         });
         toolsNoteButtomDiv.appendChild(toolsNoteButton);
@@ -293,17 +296,75 @@ let NoteJs = {
     assign: function(){
        let _this = this
        let note  = localStorage.getItem("note")
-       let newNodeArr = JSON.parse(note)
+       let newNodeArr = JSON.parse(note) || []
        let HTML = document.getElementById( _this.id ).innerHTML
        newNodeArr.forEach( item => {
           let span = document.createElement("span");
           let content = item.content;
           span.setAttribute("noteid", item.nodeid);
+          span.setAttribute("notecontent", item.noteContent)
           span.style.backgroundColor = item.bgColor;
           span.innerHTML = content
           HTML = HTML.replace(new RegExp(content,'g'),span.outerHTML);
           document.getElementById( _this.id ).innerHTML = HTML;
        });
+    },
+
+    tooltips:function(){
+
+      let _this = this;
+      let dom = document.getElementsByTagName("span");
+      for (i = 0; i < dom.length; i++) {
+
+        let nodeid = dom[i].getAttribute("nodeid");
+        let notecontent = dom[i].getAttribute("notecontent") || "";
+        dom[i].addEventListener("mouseover", function(e){
+            let div = document.createElement("div");
+
+            div.id = "tips_"+nodeid;
+            div.style.width = "200px";
+            div.style.border = "1px solid #303133";
+            div.style.backgroundColor = "#303133";
+            div.style.color = "#fff";
+            div.style.position = "absolute";
+            div.style.zIndex = 999;
+            div.style.padding = "10px";
+            div.style.borderRadius = "4px";
+            div.style.fontSize = "14px";
+            div.innerText = notecontent;
+
+            let left = e.target.getBoundingClientRect().left;
+            let top = e.target.getBoundingClientRect().top;
+            let height = e.target.getBoundingClientRect().height;
+            let width = e.target.getBoundingClientRect().width;
+
+            console.log(height, width);
+
+            if( left > width){
+               div.className = "bubble";
+               top = (top + height + 10) + "px";
+               left =  (left + (width/2) - 100) + "px";
+            }else{
+               div.className = "bubble_left";
+               console.log(e.target.offsetHeight);
+               top = ( top - height) + "px";
+               left = (left + width + 10) + "px";
+            }
+
+            div.style.top = top;
+            div.style.left = left;
+
+            
+           
+            _this.body.appendChild(div);
+        })
+
+        dom[i].addEventListener("mouseout", function(e){
+           document.getElementById("tips_"+nodeid).remove();
+        })
+      }
+      this.addCSS(".bubble:after{content:'';position:absolute;bottom:100%;right:50%;width:0;height:0;border-width:8px;border-style:solid;border-color:transparent;border-bottom-width:10px;border-bottom-color:currentColor;color:#303133;}"); 
+      this.addCSS(".bubble_left:after{content:'';position:absolute;right:100%;top:calc(50% - 8px);width:0;height:0;border-width:8px;border-style:solid;border-color:transparent;border-right-width:10px;border-right-color:currentColor;color:#303133;}")
     }
 }
 
@@ -312,3 +373,4 @@ me.init({
    id: "js_content"
 });
 me.assign();
+me.tooltips();
